@@ -158,12 +158,20 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { usePublicContent } from '@stores/fch-public';
 
 const publicStore = usePublicContent();
+const route = useRoute();
 
 onMounted(() => {
     publicStore.resetFilters();
+    
+    // Check for event filter from landing page
+    if (route.query.event) {
+        publicStore.filters.event = route.query.event as string;
+    }
+    
     publicStore.getData();
 });
 

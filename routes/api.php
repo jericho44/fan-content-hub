@@ -75,6 +75,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 // Fan Content Hub Public APIs
 Route::get('/public/fan-content', [App\Http\Controllers\ApiPublic\FanContentController::class, 'index']);
+Route::get('/public/events', [App\Http\Controllers\ApiPublic\PublicEventController::class, 'index']);
 
 // Helper
 Route::group(['prefix' => 'helper'], function () {

@@ -42,33 +42,25 @@
             </div>
         </section>
 
-        <!-- Featured Section Preview -->
+        <!-- Featured Section Preview (Now Events) -->
         <section id="featured" class="featured py-20 bg-dark-deep">
             <div class="container">
                 <div class="text-center mb-16">
-                    <h2 class="display-5 fw-bolder text-white mb-4">Momen Terbaru yang Dibagikan</h2>
-                    <p class="text-gray-500 fs-5">Tetap update dengan unggahan terbaru dari acara-acara yang sedang tren.</p>
+                    <h2 class="display-5 fw-bolder text-white mb-4">Momen Berdasarkan Acara</h2>
+                    <p class="text-gray-500 fs-5 text-balance">Pilih acara untuk melihat seluruh koleksi foto dan video dari momen tersebut.</p>
                 </div>
 
-                <div class="row g-8">
-                    <!-- Preview Cards (Static mockup for now, or fetch later) -->
-                    <div class="col-md-4" v-for="i in 3" :key="i">
-                        <div class="card bg-gray-800 border-0 overflow-hidden h-100 hover-lift">
-                            <div class="card-img-top position-relative" style="height: 250px; background: #2c2c34;">
-                                <div class="position-absolute top-50 start-50 translate-middle">
-                                    <span class="fs-1 opacity-25">📷</span>
-                                </div>
-                            </div>
-                            <div class="card-body p-8">
-                                <span class="badge badge-light-primary mb-3">Sedang Tren</span>
-                                <h4 class="text-white fw-bold mb-2">Momen di Seoul 2024</h4>
-                                <p class="text-gray-500 small">Diambil di Olympic Arena hari Minggu lalu.</p>
-                            </div>
-                        </div>
+                <div v-if="loading" class="text-center py-20">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+
+                <div v-else class="row g-8">
+                    <div class="col-md-6 col-lg-4" v-for="(event, index) in events" :key="event.id">
+                        <EventCard :event="event" :delay="(index * 0.1) + 's'" />
                     </div>
                 </div>
 
-                <div class="text-center mt-16">
+                <div class="text-center mt-16" v-if="!loading && events.length > 0">
                     <router-link to="/fan-content-hub" class="btn btn-link text-primary fs-5 fw-bold text-decoration-none p-0">
                         Lihat Semua Koleksi <i class="fas fa-arrow-right ms-2 small"></i>
                     </router-link>
@@ -86,11 +78,25 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { initializeAppPlugins } from '@/plugins/global';
+import api from '@services/api';
+import EventCard from '@/components/public/EventCard.vue';
+import type { IEvent } from '@/types/fch-event';
 
-onMounted(() => {
+const events = ref<IEvent[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
     initializeAppPlugins();
+    try {
+        const res = await api().get('/api/public/events?limit=6');
+        events.value = res.data.data.data;
+    } catch (err) {
+        console.error('Failed to fetch events:', err);
+    } finally {
+        loading.value = false;
+    }
 });
 </script>
 
