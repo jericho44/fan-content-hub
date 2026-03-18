@@ -1,0 +1,36 @@
+# Implementation Plan - Modern Landing Page
+
+A suitable landing page for a personal finance application should be professional, clean, and focus on value propositions (security, ease of use, insights).
+
+## Proposed Changes
+
+### Frontend (Vue 3)
+
+#### [NEW] [Landing.vue](file:///c:/laragon/www/personal-finance/resources/js/views/Landing.vue)
+- Implement a premium, modern landing page using custom CSS and existing styling tokens.
+- **Hero Section**: Clear value proposition ("Manage Your Finances Like a Pro") with a Call-to-Action (CTA) button to Register.
+- **Features Section**: Highlight key features (Account Tracking, AI Insights, Budgeting, Telegram Integration).
+- **Security Section**: Emphasize safety and encryption.
+- **Dark Mode Support**: Ensure the landing page supports the existing light/dark mode system.
+
+#### [MODIFY] [authorization.ts](file:///c:/laragon/www/personal-finance/resources/js/routes/authorization.ts)
+- Change the root path `/` to point to the new `Landing.vue`.
+- Move the `Login` route to `/login`.
+- Ensure proper guest/auth meta tags.
+
+#### [MODIFY] [index.ts](file:///c:/laragon/www/personal-finance/resources/js/routes/index.ts)
+- Update `beforeEach` navigation guard if necessary to handle the new root path and redirection for authenticated users.
+
+## Verification Plan
+
+### Automated Tests
+- N/A (Project currently focuses on manual/visual verification for UI).
+
+### Manual Verification
+1. **Desktop and Mobile View**: Open the root URL (`/`) in a browser and verify the landing page looks premium and is responsive.
+2. **CTA Functionality**: Click "Get Started" or "Register" and ensure it navigates to the registration page.
+3. **Redirection Logic**:
+   - Access `/` while logged out: Should see the Landing Page.
+   - Access `/` while logged in: Should redirect to the Dashboard (based on current [index.ts](file:///c:/laragon/www/personal-finance/resources/js/routes/index.ts) logic).
+   - Access `/login`: Should see the login page.
+4. **Dark Mode**: Toggle dark mode and ensure the landing page transitions smoothly.

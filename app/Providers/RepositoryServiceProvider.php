@@ -20,6 +20,10 @@ class RepositoryServiceProvider extends ServiceProvider
         // $this->app->bind(Interfaces\RoleInterface::class, Repositories\RoleRepository::class);
         // $this->app->bind(Interfaces\UserFirebaseInterface::class, Repositories\UserFirebaseRepository::class);
         // $this->app->bind(Interfaces\ProvinceInterface::class, Repositories\ProvinceRepository::class);
+
+        $this->app->bind(Interfaces\EventInterface::class, Repositories\EventRepository::class);
+        $this->app->bind(Interfaces\ContentInterface::class, Repositories\ContentRepository::class);
+        $this->app->bind(Interfaces\TagInterface::class, Repositories\TagRepository::class);
     }
 
     /**

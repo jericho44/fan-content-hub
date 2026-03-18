@@ -110,6 +110,58 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="menu-item py-1"
+                                v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])">
+                                <div class="menu-content pb-2">
+                                    <span class="menu-section text-muted text-uppercase fs-8 ls-1">Fan Content Hub</span>
+                                </div>
+                            </div>
+                            <div v-if="isSpecificHaveAccessMenu([environmentStore.data.roleSuperAdmin, environmentStore.data.roleAdmin])"
+                                data-kt-menu-trigger="click"
+                                :class="`menu-item menu-accordion ${pageActive(['a-fch-events', 'a-fch-tags', 'a-fch-contents']) == 'active' ? 'show' : ''}`">
+                                <span class="menu-link toggle-accordion mx-2">
+                                    <span class="menu-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M4 4H10V10H4V4Z" fill="currentColor"/>
+                                            <path opacity="0.4" d="M14 4H20V10H14V4Z" fill="currentColor"/>
+                                            <path opacity="0.4" d="M4 14H10V20H4V14Z" fill="currentColor"/>
+                                            <path opacity="0.4" d="M14 14H20V20H14V14Z" fill="currentColor"/>
+                                        </svg>
+                                    </span>
+                                    <span class="menu-title">Content Management</span>
+                                    <span class="menu-arrow" />
+                                </span>
+                                <div class="menu-sub menu-sub-accordion">
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-fch-events')}`"
+                                            @click="$router.push({ name: 'a-fch-events' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Events</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-fch-tags')}`"
+                                            @click="$router.push({ name: 'a-fch-tags' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Tags</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a :class="`menu-link btn mx-5 btn-sm ${pageActive('a-fch-contents')}`"
+                                            @click="$router.push({ name: 'a-fch-contents' })" href="javascript:;">
+                                            <span class="menu-bullet">
+                                                <span class="bullet bullet-dot" />
+                                            </span>
+                                            <span class="menu-title">Contents</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>

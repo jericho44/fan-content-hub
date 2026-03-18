@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api;
+use App\Http\Controllers\ApiWeb;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -71,6 +72,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('/villages', [Api\SelectListController::class, 'villages']);
     });
 });
+
+// Fan Content Hub Public APIs
+Route::get('/public/fan-content', [App\Http\Controllers\ApiPublic\FanContentController::class, 'index']);
 
 // Helper
 Route::group(['prefix' => 'helper'], function () {

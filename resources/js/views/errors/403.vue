@@ -1,9 +1,12 @@
 <template>
     <div class="d-flex flex-column flex-root">
         <!--begin::Authentication - 404 Page-->
-        <div class="d-flex flex-column flex-center mt-10 flex-column-fluid p-10">                    
+        <div class="d-flex flex-column flex-center mt-10 flex-column-fluid p-10 text-center">                    
             <!--begin::Message-->
-            <h1 class="fw-bold mb-10" style="color: #A3A3C7">You Don't Have Access To The Page</h1>
+            <h1 class="fw-bold mb-5" style="color: #A3A3C7">You Don't Have Access To The Page</h1>
+            <p v-if="$route.query.info" class="text-muted mb-10 fs-5">
+                {{ $route.query.info }}
+            </p>
             <!--end::Message-->
             <!--begin::Link-->           
             <router-link to="/" class="btn btn-primary">Return Home Page</router-link>                
