@@ -1,41 +1,48 @@
 <template>
     <div class="event-card-container animate__animated animate__fadeInUp" :style="{ animationDelay: delay }">
-        <div class="event-card bg-glass-dark border-0 overflow-hidden h-100 position-relative group" @click="navigateToGallery">
-            <!-- Event Image Overlay/Placeholder -->
-            <div class="event-visual position-relative overflow-hidden">
-                <div class="visual-overlay"></div>
-                <!-- Simple placeholder icon -->
-                <div class="visual-placeholder d-flex align-items-center justify-content-center">
-                    <span class="placeholder-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </span>
+        <div class="event-album-card overflow-hidden h-100 position-relative group shadow-lg" @click="navigateToGallery">
+            <!-- Album Thumbnail Background -->
+            <div class="album-thumbnail-wrapper position-absolute inset-0">
+                <img v-if="event.thumbnailUrl" :src="event.thumbnailUrl" class="album-img transition-transform duration-500" :alt="event.name">
+                <div v-else class="placeholder-bg d-flex align-items-center justify-content-center">
+                    <i class="fas fa-images fs-1 text-white opacity-25"></i>
                 </div>
-                <!-- Date Badge -->
-                <div class="date-badge">
-                    <span class="day">{{ eventDay }}</span>
-                    <span class="month">{{ eventMonth }}</span>
+                <div class="album-overlay position-absolute inset-0"></div>
+            </div>
+
+            <!-- Content Count Badge -->
+            <div class="position-absolute top-4 right-4 z-index-2">
+                <span class="badge bg-blur-white text-white rounded-pill px-4 py-2 fs-8 fw-bold">
+                    <i class="fas fa-layer-group me-2"></i> {{ event.contentCount || 0 }} Item
+                </span>
+            </div>
+
+            <!-- Event Details (Bottom Overlay) -->
+            <div class="album-details position-absolute bottom-0 left-0 w-100 p-8 z-index-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span v-if="event.city" class="text-primary-light fw-bolder text-uppercase fs-8 tracking-widest">{{ event.city }}</span>
+                    <span class="text-white opacity-50 fs-8">•</span>
+                    <span class="text-white opacity-75 fs-8 fw-medium">{{ eventYear }}</span>
+                </div>
+                <h3 class="text-white fw-extra-bold mb-4 album-title">
+                    {{ event.name }}
+                </h3>
+                
+                <div class="d-flex align-items-center justify-content-between pt-4 border-top border-white border-opacity-10 mt-auto">
+                    <div class="d-flex align-items-center gap-2 text-white text-opacity-75 fs-8">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ event.location }}</span>
+                    </div>
+                    <div class="album-arrow transition-all">
+                        <i class="fas fa-arrow-right text-white"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- Event Content -->
-            <div class="event-details p-8">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="badge badge-glow-primary">Acara Seru</span>
-                    <span class="text-gray-600 fs-8 fw-bold text-uppercase">{{ eventYear }}</span>
-                </div>
-                <h3 class="text-white fw-bolder mb-3 group-hover-text-primary transition">
-                    {{ event.name }}
-                </h3>
-                <div class="d-flex align-items-center gap-3 text-gray-500 mb-6">
-                    <i class="fas fa-map-marker-alt fs-7"></i>
-                    <span class="fs-7 fw-medium">{{ event.location || 'Lokasi Belum Ditentukan' }}</span>
-                </div>
-                
-                <div class="mt-auto pt-6 border-top border-white border-opacity-5 d-flex justify-content-between align-items-center">
-                    <span class="text-primary-gradient fw-bold fs-7">Lihat Galeri</span>
-                    <div class="btn-circle-arrow">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
+            <!-- Hover "Open" Indicator -->
+            <div class="album-hover-indicator position-absolute inset-0 d-flex align-items-center justify-content-center opacity-0 group-hover-opacity-100 z-index-3">
+                <div class="btn btn-primary-glass rounded-circle btn-lg p-6">
+                    <i class="fas fa-expand fs-3"></i>
                 </div>
             </div>
         </div>
@@ -58,11 +65,6 @@ const eventDate = computed(() => {
     return props.event.date ? new Date(props.event.date) : new Date();
 });
 
-const eventDay = computed(() => eventDate.value.getDate());
-const eventMonth = computed(() => {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
-    return months[eventDate.value.getMonth()];
-});
 const eventYear = computed(() => eventDate.value.getFullYear());
 
 function navigateToGallery() {
@@ -74,125 +76,90 @@ function navigateToGallery() {
 </script>
 
 <style scoped>
-.bg-glass-dark {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 28px;
-}
-
-.event-card {
+.event-album-card {
+    border-radius: 32px;
     cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.event-card:hover {
-    transform: translateY(-12px);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 25px 50px -12px rgba(54, 153, 255, 0.25);
-    border-color: rgba(54, 153, 255, 0.3);
-}
-
-.event-visual {
-    height: 180px;
     background: #1a1b26;
+    height: 380px !important;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.visual-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(0deg, rgba(8, 9, 13, 0.8) 0%, transparent 100%);
-    z-index: 1;
-}
-
-.visual-placeholder {
+.album-thumbnail-wrapper {
+    width: 100%;
     height: 100%;
 }
 
-.placeholder-icon {
-    font-size: 3.5rem;
-    color: rgba(255, 255, 255, 0.05);
-    transition: all 0.5s ease;
+.album-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.event-card:hover .placeholder-icon {
-    color: rgba(54, 153, 255, 0.15);
-    transform: scale(1.1) rotate(-5deg);
+.event-album-card:hover .album-img {
+    transform: scale(1.1);
 }
 
-.date-badge {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 2;
-    background: #ffffff;
-    width: 55px;
-    height: 65px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+.placeholder-bg {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #232531 0%, #111218 100%);
 }
 
-.date-badge .day {
+.album-overlay {
+    background: linear-gradient(0deg, rgba(8, 9, 13, 0.95) 0%, rgba(8, 9, 13, 0.4) 50%, rgba(8, 9, 13, 0.1) 100%);
+    transition: background 0.4s ease;
+}
+
+.event-album-card:hover .album-overlay {
+    background: linear-gradient(0deg, rgba(8, 9, 13, 0.98) 0%, rgba(8, 9, 13, 0.6) 50%, rgba(54, 153, 255, 0.2) 100%);
+}
+
+.bg-blur-white {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.album-title {
     font-size: 1.5rem;
-    font-weight: 800;
-    color: #0d0d12;
-    line-height: 1;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
-.date-badge .month {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #3699ff;
-    letter-spacing: 1px;
+.text-primary-light {
+    color: #89c4ff;
 }
 
-.badge-glow-primary {
-    background: rgba(54, 153, 255, 0.1);
-    color: #3699ff;
-    border: 1px solid rgba(54, 153, 255, 0.2);
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    padding: 4px 10px;
-}
-
-.group-hover-text-primary {
-    transition: color 0.3s ease;
-}
-
-.event-card:hover .group-hover-text-primary {
-    color: #3699ff !important;
-}
-
-.btn-circle-arrow {
+.album-arrow {
+    background: rgba(255, 255, 255, 0.1);
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(54, 153, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #3699ff;
-    transition: all 0.3s ease;
 }
 
-.event-card:hover .btn-circle-arrow {
+.event-album-card:hover .album-arrow {
     background: #3699ff;
+    transform: rotate(-45deg);
+}
+
+.btn-primary-glass {
+    background: rgba(54, 153, 255, 0.25);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(54, 153, 255, 0.3);
     color: white;
-    transform: translateX(4px);
 }
 
-.text-primary-gradient {
-    background: linear-gradient(135deg, #3699ff 0%, #7239ea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.transition {
-    transition: all 0.3s ease;
-}
+.inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
+.z-index-2 { z-index: 2; }
+.z-index-3 { z-index: 3; }
+.duration-500 { transition-duration: 500ms; }
+.tracking-widest { letter-spacing: 0.1em; }
+.fw-extra-bold { font-weight: 900; }
+.opacity-0 { opacity: 0; }
+.group-hover-opacity-100:hover .opacity-0,
+.group:hover .group-hover-opacity-100 { opacity: 1; }
 </style>

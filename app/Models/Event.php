@@ -18,7 +18,9 @@ class Event extends Model
         'slug',
         'date',
         'location',
+        'city',
         'description',
+        'external_gallery_url',
     ];
 
     public function contents()

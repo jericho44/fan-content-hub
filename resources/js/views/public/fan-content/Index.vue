@@ -69,61 +69,53 @@
                         <div class="spinner-border text-primary" role="status"></div>
                     </div>
 
-                    <div class="row g-6 g-xl-10">
+                    <!-- Content Area -->
+                    <div v-if="publicStore.table.data.length === 0 && !publicStore.table.loading" class="row">
                         <!-- Empty State -->
-                        <div class="col-12 py-20 text-center animate__animated animate__fadeIn" v-if="!publicStore.table.loading && publicStore.table.data.length === 0">
+                        <div class="col-12 py-20 text-center animate__animated animate__fadeIn">
                             <div class="mb-10 fs-1 opacity-25">📁</div>
                             <h3 class="text-white fw-bold mb-3">Konten tidak ditemukan</h3>
                             <p class="text-gray-500 mb-8">Kami tidak dapat menemukan hasil yang sesuai dengan kriteria pencarian Anda.</p>
                             <button class="btn btn-outline-primary px-8" @click="resetFilters">Tampilkan Semua Konten</button>
                         </div>
+                    </div>
 
-                        <!-- Content Cards -->
-                        <div class="col-sm-6 col-lg-4 col-xl-3 animate__animated animate__fadeInUp" 
+                    <div class="row g-1" v-else>
+                        <!-- Dense Content Grid -->
+                        <div class="col-6 col-md-4 col-lg-3 col-xl-2 animate__animated animate__fadeIn" 
                             v-for="(item, index) in publicStore.table.data" :key="item.id"
-                            :style="{ animationDelay: (index * 0.05) + 's' }">
-                            <div class="content-card h-100">
-                                <div class="card-inner bg-card-dark border-0 h-100 overflow-hidden d-flex flex-column">
-                                    <div class="media-preview position-relative overflow-hidden cursor-pointer" @click="openLink(item.googleDriveUrl)">
-                                        <div class="media-overlay"></div>
-                                        
-                                        <!-- Real Image -->
-                                        <img v-if="item.type === 'image' && item.googleDriveUrl" 
-                                            :src="item.googleDriveUrl" 
-                                            class="w-100 h-100 object-fit-cover transition-scale" 
-                                            :alt="item.title"
-                                            loading="lazy">
+                            :style="{ animationDelay: (index * 0.02) + 's' }">
+                            <div class="photo-item position-relative overflow-hidden group cursor-pointer" @click="openLink(item.googleDriveUrl)">
+                                <!-- Real Image -->
+                                <div class="photo-wrapper aspect-ratio-square">
+                                    <img v-if="item.type === 'image' && item.googleDriveUrl" 
+                                        :src="item.googleDriveUrl" 
+                                        class="w-100 h-100 object-fit-cover photo-img transition-transform duration-500" 
+                                        :alt="item.title"
+                                        loading="lazy">
+                                    
+                                    <div v-else class="video-placeholder d-flex align-items-center justify-content-center h-100 bg-dark-deep">
+                                        <i class="fas fa-play fs-1 text-white opacity-25"></i>
+                                    </div>
+                                </div>
 
-                                        <!-- Placeholder when no image or video -->
-                                        <div v-if="item.type === 'video' || !item.googleDriveUrl" class="media-placeholder d-flex align-items-center justify-content-center">
-                                            <span class="media-icon">
-                                                <i :class="item.type === 'image' ? 'fas fa-camera' : 'fas fa-play'"></i>
-                                            </span>
-                                        </div>
-
-                                        <div class="media-badge">
-                                            <span :class="['badge rounded-pill', item.type === 'image' ? 'badge-image' : 'badge-video text-white']">
-                                                {{ item.type === 'image' ? 'FOTO' : 'VIDEO' }}
+                                <!-- Hover Overlay (Google Photos Style) -->
+                                <div class="photo-overlay position-absolute inset-0 opacity-0 group-hover-opacity-100 d-flex flex-column justify-content-end p-4 transition-opacity">
+                                    <div class="photo-info overflow-hidden">
+                                        <div class="text-white fw-bold fs-8 text-truncate mb-1">{{ item.title }}</div>
+                                        <div class="d-flex align-items-center gap-1 overflow-hidden">
+                                            <span v-for="tag in item.tags?.slice(0, 2)" :key="tag.id" class="text-primary-light fs-10 fw-medium">
+                                                #{{ tag.name }}
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="card-body p-6 flex-grow-1 d-flex flex-column">
-                                        <h4 class="text-white fw-bold mb-2 line-clamp-2 hover-primary transition cursor-pointer" @click="openLink(item.googleDriveUrl)">
-                                            {{ item.title }}
-                                        </h4>
-                                        <div class="d-flex align-items-center gap-2 mb-6">
-                                            <i class="fas fa-calendar-day text-gray-600 fs-7"></i>
-                                            <span class="text-gray-500 fs-7 fw-medium">{{ item.event?.name || 'Acara Mendatang' }}</span>
-                                        </div>
-                                        <div class="mt-auto pt-4 border-top border-white border-opacity-5">
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <span v-for="tag in item.tags" :key="tag.id" class="badge-tag">
-                                                    #{{ tag.name }}
-                                                </span>
-                                                <span v-if="!item.tags?.length" class="text-gray-700 fs-8 italic">Tanpa tag</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                </div>
+
+                                <!-- Badge -->
+                                <div class="photo-badge position-absolute top-2 right-2">
+                                    <span v-if="item.type === 'video'" class="badge bg-blur-dark rounded-circle p-2">
+                                        <i class="fas fa-video fs-9 text-white"></i>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -430,15 +422,54 @@ function openLink(url: string | null) {
     font-style: italic;
 }
 
-.transition-scale {
-    transition: transform 0.5s ease;
+.photo-item {
+    background: #0d0d12;
+    transition: all 0.3s ease;
 }
 
-.content-card:hover .transition-scale {
+.photo-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.aspect-ratio-square {
+    aspect-ratio: 1 / 1;
+}
+
+.photo-img {
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.photo-item:hover .photo-img {
     transform: scale(1.1);
 }
 
-.object-fit-cover {
-    object-fit: cover;
+.photo-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+    z-index: 2;
 }
+
+.photo-badge {
+    z-index: 3;
+}
+
+.bg-blur-dark {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-primary-light {
+    color: #3699ff;
+}
+
+.fs-9 { font-size: 0.65rem; }
+.fs-10 { font-size: 0.55rem; }
+
+.inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
+.top-2 { top: 0.5rem; }
+.right-2 { right: 0.5rem; }
+
+.duration-500 { transition-duration: 500ms; }
 </style>

@@ -88,6 +88,7 @@ class ContentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'event_id' => 'nullable|exists:events,id_hash',
             'status' => 'required|in:pending,active,inactive',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,id_hash',
@@ -95,7 +96,13 @@ class ContentController extends Controller
         ]);
 
         try {
-            $data = $request->only(['title', 'status', 'tags', 'metadata']);
+            $data = $request->only(['title', 'event_id', 'status', 'tags', 'metadata']);
+
+            // Resolve event_id hash to real ID
+            if (isset($data['event_id'])) {
+                $event = \App\Models\Event::where('id_hash', $data['event_id'])->firstOrFail();
+                $data['event_id'] = $event->id;
+            }
 
             // Resolve tag hashes to real IDs
             if (isset($data['tags'])) {

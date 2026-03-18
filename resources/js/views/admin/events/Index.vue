@@ -31,6 +31,7 @@
                                                         (Number(eventStore.table.currentPage) - 1))) + 1 }}
                                                 </td>
                                                 <td class="text-left">{{ context.name }}</td>
+                                                <td class="text-left">{{ context.city ?? '-' }}</td>
                                                 <td class="text-left">{{ context.date }}</td>
                                                 <td class="text-left">{{ context.location }}</td>
                                                 <td class="text-center">
@@ -83,10 +84,23 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label fw-bolder fs-6" :class="v$.single.location.$error ? 'text-danger' : ''">Lokasi</label>
-                    <input class="form-control" type="text" placeholder="Contoh: Jakarta" autocomplete="off"
+                    <label class="form-label fw-bolder fs-6" :class="v$.single.location.$error ? 'text-danger' : ''">Lokasi (Venue)</label>
+                    <input class="form-control" type="text" placeholder="Contoh: Senayan JSE" autocomplete="off"
                         v-model="single.location">
                     <div v-if="v$.single.location.$error" class="text-danger"> Lokasi tidak boleh kosong! </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bolder fs-6">Kota</label>
+                    <input class="form-control" type="text" placeholder="Contoh: Jakarta" autocomplete="off"
+                        v-model="single.city">
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bolder fs-6">External Gallery URL (Optional)</label>
+                    <input class="form-control" type="text" placeholder="https://photos.google.com/..." autocomplete="off"
+                        v-model="single.external_gallery_url">
+                    <div class="text-muted fs-7 mt-1">Jika diisi, klik di landing page akan membuka link ini.</div>
                 </div>
 
                 <div class="mb-5">
@@ -127,7 +141,9 @@ const single = reactive({
     name: '',
     date: '',
     location: '',
-    description: ''
+    city: '',
+    description: '',
+    external_gallery_url: ''
 });
 
 const rules = computed(() => ({
@@ -166,7 +182,9 @@ async function saveData() {
             name: single.name,
             date: single.date,
             location: single.location,
-            description: single.description
+            city: single.city,
+            description: single.description,
+            external_gallery_url: single.external_gallery_url
         };
 
         const res = flag.value === 'insert' && !single.id
@@ -197,7 +215,9 @@ async function edit(id: string) {
         single.name = data.name;
         single.date = data.date;
         single.location = data.location;
+        single.city = data.city || '';
         single.description = data.description;
+        single.external_gallery_url = data.externalGalleryUrl || '';
         modalForm.value?.show();
     } catch (error) {
         axiosHandleError(error)
@@ -239,6 +259,8 @@ function reset() {
     single.name = '';
     single.date = '';
     single.location = '';
+    single.city = '';
     single.description = '';
+    single.external_gallery_url = '';
 }
 </script>

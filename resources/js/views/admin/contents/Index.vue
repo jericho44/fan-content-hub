@@ -24,6 +24,9 @@
                                         @set-show-per-page="(showPerPage: number) => contentStore.setShowPerPage(showPerPage)"
                                         @set-sort-by="(sortBy: string) => contentStore.setSortBy(sortBy)"
                                         :is-from-store="true">
+                                        <template v-slot:header-preview>
+                                            <th class="min-w-80px text-center">Preview</th>
+                                        </template>
                                         <template v-slot:body>
                                             <tr v-for="(context, index) in contentStore.table.data" :key="context.id">
                                                 <td class="text-center">
@@ -31,8 +34,13 @@
                                                         (Number(contentStore.table.currentPage) - 1))) + 1 }}
                                                 </td>
                                                 <td class="text-center">
-                                                    <a v-if="context.google_drive_url" :href="context.google_drive_url" target="_blank" class="btn btn-sm btn-light">Lihat {{ context.type }}</a>
-                                                    <span v-else class="text-muted">Proses...</span>
+                                                    <div v-if="context.google_drive_url" class="symbol symbol-50px cursor-pointer" @click="openLink(context.google_drive_url)">
+                                                        <img v-if="context.type === 'image'" :src="context.google_drive_url" class="rounded object-fit-cover" alt="Preview">
+                                                        <div v-else class="symbol-label bg-light-primary text-primary">
+                                                            <i class="fas fa-video fs-2"></i>
+                                                        </div>
+                                                    </div>
+                                                    <span v-else class="text-muted small">Proses...</span>
                                                 </td>
                                                 <td class="text-left">{{ context.title }}</td>
                                                 <td class="text-left">{{ context.event?.name ?? '-' }}</td>
@@ -91,7 +99,7 @@
                     <div v-if="v$.single.type.$error" class="text-danger"> Tipe tidak boleh kosong! </div>
                 </div>
 
-                <div class="mb-5" v-if="flag === 'insert'">
+                <div class="mb-5">
                     <label class="form-label fw-bolder fs-6" :class="v$.single.event_id.$error ? 'text-danger' : ''">Event</label>
                     <select class="form-select" v-model="single.event_id">
                         <option value="" disabled>Pilih Event</option>
@@ -100,9 +108,19 @@
                     <div v-if="v$.single.event_id.$error" class="text-danger"> Event tidak boleh kosong! </div>
                 </div>
 
+                <div class="mb-5">
+                    <label class="form-label fw-bolder fs-6">Tags</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <div v-for="tag in tagStore.table.data" :key="tag.id" class="form-check form-check-custom form-check-solid">
+                            <input class="form-check-input" type="checkbox" :value="tag.id" v-model="single.tags" :id="`tag-${tag.id}`">
+                            <label class="form-check-label fs-7" :for="`tag-${tag.id}`">{{ tag.name }}</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-5" v-if="flag === 'insert'">
                     <label class="form-label fw-bolder fs-6" :class="v$.single.files.$error ? 'text-danger' : ''">File Upload</label>
-                    <input class="form-control" type="file" @change="handleFileUpload" multiple>
+                    <input ref="fileInput" class="form-control" type="file" @change="handleFileUpload" multiple>
                     <div v-if="v$.single.files.$error" class="text-danger"> File upload tidak boleh kosong! </div>
                     <div class="text-muted fs-7 mt-2">File akan diunggah ke Google Drive di latar belakang.</div>
                 </div>
@@ -147,6 +165,7 @@ const eventStore = useEvent();
 const tagStore = useTag();
 
 const modalForm = ref<InstanceType<typeof CustomModal> | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 const flag = ref<'insert' | 'edit'>('insert');
 
 const single = reactive({
@@ -164,7 +183,7 @@ const rules = computed(() => {
         single: {
             title: { required },
             type: flag.value === 'insert' ? { required } : {},
-            event_id: flag.value === 'insert' ? { required } : {},
+            event_id: { required },
             files: flag.value === 'insert' ? { required } : {},
             status: flag.value === 'edit' ? { required } : {}
         }
@@ -182,8 +201,13 @@ onMounted(() => {
     if (authorizationStore.data.authorized) {
         contentStore.getData();
         eventStore.getData();
+        tagStore.getData();
     }
 });
+
+function openLink(url: string) {
+    window.open(url, '_blank');
+}
 
 function handleFileUpload(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -224,13 +248,15 @@ async function saveData() {
         } else {
             const payload = {
                 title: single.title,
+                event_id: single.event_id,
                 status: single.status,
                 tags: single.tags
             };
             res = await contentStore.update(single.id, payload);
         }
 
-        $('#modal-form').modal('hide');
+        modalForm.value?.hide();
+        reset();
         Swal.fire({ icon: 'success', title: 'Berhasil!', text: res?.data?.meta?.message });
 
         contentStore.setCurrentPage(1);
@@ -253,6 +279,8 @@ async function edit(id: string) {
         single.id = data.id;
         single.title = data.title;
         single.status = data.status;
+        single.event_id = data.event?.id || '';
+        single.tags = (data.tags as any[])?.map(t => t.id) || [];
         modalForm.value?.show();
     } catch (error) {
         axiosHandleError(error)
@@ -297,5 +325,9 @@ function reset() {
     single.files = [];
     single.status = 'pending';
     single.tags = [];
+    // Clear file input
+    if (fileInput.value) {
+        fileInput.value.value = '';
+    }
 }
 </script>

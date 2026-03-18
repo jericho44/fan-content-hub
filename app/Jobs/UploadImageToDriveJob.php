@@ -47,13 +47,13 @@ class UploadImageToDriveJob implements ShouldQueue
             // Assuming idol is in metadata or default to 'Unknown'
             $year = Carbon::parse($this->content->created_at)->format('Y');
             $event = $this->content->event ? $this->content->event->slug : 'general';
-            
+
             // Extract idol from metadata if present, else default
             $metadata = $this->content->metadata ?? [];
             $idol = $metadata['idol'] ?? 'general';
 
             $folderPath = $driveService->createFolderIfNotExists($year, $idol, $event);
-            
+
             $fileContents = Storage::disk('local')->get($this->localFilePath);
             $fileName = basename($this->localFilePath);
             $driveFilePath = trim($folderPath, '/') . '/' . $fileName;
@@ -63,7 +63,7 @@ class UploadImageToDriveJob implements ShouldQueue
             $fileStream = Storage::disk('local')->readStream($this->localFilePath);
 
             $result = $driveService->uploadFile($fileStream, $driveFilePath);
-            
+
             if (is_resource($fileStream)) {
                 fclose($fileStream);
             }
@@ -80,14 +80,15 @@ class UploadImageToDriveJob implements ShouldQueue
 
             Log::info("Successfully uploaded Content ID: {$this->content->id} to Google Drive.");
 
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             Log::error("Failed to upload Content ID: {$this->content->id} to Google Drive. Error: " . $e->getMessage());
-            
+
             // Re-throw so the queue knows it failed and can retry
             throw $e;
         }
     }
-    
+
     /**
      * Handle a job failure.
      */

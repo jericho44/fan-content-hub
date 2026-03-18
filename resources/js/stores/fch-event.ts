@@ -13,6 +13,7 @@ export const useEvent = defineStore('fchEvent', () => {
         column: [
             { text: 'NO', sortBy: 'id', sortColumn: true },
             { text: 'Nama Event', sortBy: 'name', sortColumn: true, class: 'w-300px' },
+            { text: 'Kota', sortBy: 'city', sortColumn: true },
             { text: 'Tanggal', sortBy: 'date', sortColumn: true },
             { text: 'Lokasi', sortBy: 'location', sortColumn: true },
             { text: 'Aksi', sortBy: '', sortColumn: false, class: 'text-center' }
