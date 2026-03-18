@@ -54,6 +54,13 @@ A comprehensive Laravel 12 API template featuring authentication, 2FA, role-base
     -   PHPUnit v11.5+ (required by Pest 3.7+)
     -   Laravel Pint code formatting
 
+-   📸 **Fan Content Hub Platform Core**
+    -   **Google Drive Integration**: Automated media hosting for images/videos.
+    -   **Background Processing**: Asynchronous uploads via Laravel Queues for high performance.
+    -   **Event-Centric Discovery**: Premium landing page focusing on events as primary entry points.
+    -   **Advanced Search**: PostgreSQL GIN (Generalized Inverted Index) for lightning-fast full-text search.
+    -   **Indonesian Localization**: Native support for Bahasa Indonesia across all public views.
+
 ## Table of Contents
 
 -   [Features](#features)
@@ -82,7 +89,8 @@ Required software to run this project:
 -   [Bruno](https://www.usebruno.com/) - API testing tool (recommended)
 -   Minimal version [Node JS v20.19.5 LTS](https://nodejs.org/en/download/package-manager)
 -   Minimal version [NPM v10.8.2](https://nodejs.org/en/download/package-manager)
--   [Redis](https://redis.io/download) - Optional but recommended for caching and sessions
+-   [Redis](https://redis.io/download) - Recommended for caching, sessions, and queue management
+-   [Google Drive API](https://console.cloud.google.com/) - Required for media storage integration
 
 ### PHP Modules
 
@@ -211,6 +219,12 @@ php artisan migrate --seed
 php artisan laravolt:indonesia:seed
 ```
 
+8. Seeding Fan Content Hub Dummy Data (Optional)
+
+```bash
+php artisan db:seed --class=ContentSeeder
+```
+
 ## Running Development Server for Backend (Laravel)
 
 How to run the development server.
@@ -243,6 +257,12 @@ npm run dev
 
 ```bash
 composer dev
+```
+
+2. Start the Queue Worker (Crucial for Google Drive Uploads):
+
+```bash
+php artisan queue:work
 ```
 
 The API will be available at `http://localhost:8000`
@@ -279,7 +299,7 @@ Create environments in Bruno for different stages:
 
 ### Authentication Setup
 
-1. **Login Request:**
+1.  **Login Request:**
 
     - Method: POST
     - URL: `{{baseUrl}}/api/auth/login`
@@ -292,14 +312,14 @@ Create environments in Bruno for different stages:
     }
     ```
 
-2. **Set Authentication Token:**
-   After successful login, add the token to your collection's environment variables:
+2.  **Set Authentication Token:**
+    After successful login, add the token to your collection's environment variables:
 
     - Variable: `authToken`
     - Value: `Bearer {{response.data.token.access_token}}`
 
-3. **Use in requests:**
-   Add to request headers:
+3.  **Use in requests:**
+    Add to request headers:
     ```
     Authorization: {{authToken}}
     ```
@@ -401,6 +421,12 @@ MAIL_ENCRYPTION=tls
 
 # Firebase (for push notifications)
 FIREBASE_CREDENTIALS=path/to/firebase/credentials.json
+
+# Google Drive Storage (Fan Content Hub)
+GOOGLE_DRIVE_CLIENT_ID=your_google_client_id
+GOOGLE_DRIVE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_DRIVE_REFRESH_TOKEN=your_google_refresh_token
+GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id
 ```
 
 ## Testing

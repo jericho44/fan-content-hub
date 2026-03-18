@@ -46,16 +46,26 @@ class ContentController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:image,video',
-            'event_id' => 'required|exists:events,id',
+            'event_id' => 'required|exists:events,id_hash',
             'files' => 'required|array',
             'files.*' => 'file|mimes:jpeg,png,jpg,gif,mp4|max:51200', // 50MB max per file
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => 'exists:tags,id_hash',
             'metadata' => 'nullable|array'
         ]);
 
         try {
             $data = $request->except('files');
+            
+            // Resolve event_id hash to real ID
+            $event = \App\Models\Event::where('id_hash', $data['event_id'])->firstOrFail();
+            $data['event_id'] = $event->id;
+            
+            // Resolve tag hashes to real IDs
+            if (isset($data['tags'])) {
+                $data['tags'] = \App\Models\Tag::whereIn('id_hash', $data['tags'])->pluck('id')->toArray();
+            }
+            
             $files = $request->file('files');
             $contents = [];
 
@@ -80,12 +90,17 @@ class ContentController extends Controller
             'title' => 'required|string|max:255',
             'status' => 'required|in:pending,active,inactive',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => 'exists:tags,id_hash',
             'metadata' => 'nullable|array'
         ]);
 
         try {
             $data = $request->only(['title', 'status', 'tags', 'metadata']);
+
+            // Resolve tag hashes to real IDs
+            if (isset($data['tags'])) {
+                $data['tags'] = \App\Models\Tag::whereIn('id_hash', $data['tags'])->pluck('id')->toArray();
+            }
 
             $content = $this->contentService->update($idHash, $data);
             

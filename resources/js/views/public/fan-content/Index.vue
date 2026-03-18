@@ -84,13 +84,23 @@
                             :style="{ animationDelay: (index * 0.05) + 's' }">
                             <div class="content-card h-100">
                                 <div class="card-inner bg-card-dark border-0 h-100 overflow-hidden d-flex flex-column">
-                                    <div class="media-preview position-relative overflow-hidden cursor-pointer" @click="openLink(item.google_drive_url)">
+                                    <div class="media-preview position-relative overflow-hidden cursor-pointer" @click="openLink(item.googleDriveUrl)">
                                         <div class="media-overlay"></div>
-                                        <div class="media-placeholder d-flex align-items-center justify-content-center">
+                                        
+                                        <!-- Real Image -->
+                                        <img v-if="item.type === 'image' && item.googleDriveUrl" 
+                                            :src="item.googleDriveUrl" 
+                                            class="w-100 h-100 object-fit-cover transition-scale" 
+                                            :alt="item.title"
+                                            loading="lazy">
+
+                                        <!-- Placeholder when no image or video -->
+                                        <div v-if="item.type === 'video' || !item.googleDriveUrl" class="media-placeholder d-flex align-items-center justify-content-center">
                                             <span class="media-icon">
                                                 <i :class="item.type === 'image' ? 'fas fa-camera' : 'fas fa-play'"></i>
                                             </span>
                                         </div>
+
                                         <div class="media-badge">
                                             <span :class="['badge rounded-pill', item.type === 'image' ? 'badge-image' : 'badge-video text-white']">
                                                 {{ item.type === 'image' ? 'FOTO' : 'VIDEO' }}
@@ -98,7 +108,7 @@
                                         </div>
                                     </div>
                                     <div class="card-body p-6 flex-grow-1 d-flex flex-column">
-                                        <h4 class="text-white fw-bold mb-2 line-clamp-2 hover-primary transition cursor-pointer" @click="openLink(item.google_drive_url)">
+                                        <h4 class="text-white fw-bold mb-2 line-clamp-2 hover-primary transition cursor-pointer" @click="openLink(item.googleDriveUrl)">
                                             {{ item.title }}
                                         </h4>
                                         <div class="d-flex align-items-center gap-2 mb-6">
@@ -418,5 +428,17 @@ function openLink(url: string | null) {
 
 .italic {
     font-style: italic;
+}
+
+.transition-scale {
+    transition: transform 0.5s ease;
+}
+
+.content-card:hover .transition-scale {
+    transform: scale(1.1);
+}
+
+.object-fit-cover {
+    object-fit: cover;
 }
 </style>

@@ -7,7 +7,7 @@ export interface IContent {
     title: string;
     type: 'image' | 'video';
     status: 'pending' | 'active' | 'inactive';
-    google_drive_url: string | null;
+    googleDriveUrl: string | null;
     event?: IEvent;
     tags?: ITag[];
 }
