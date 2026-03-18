@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import api from '@services/api'
 import type { IDataTableContent, ICreateContentPayload, IEditContentPayload, IContent } from '@/types/fch-content'
 import { axiosHandleError } from '@/plugins/global'
@@ -14,7 +14,9 @@ export const useContent = defineStore('fchContent', () => {
             { text: 'NO', sortBy: 'id', sortColumn: true },
             { text: 'Thumbnail', sortBy: '', sortColumn: false },
             { text: 'Judul', sortBy: 'title', sortColumn: true, class: 'w-200px' },
+            { text: 'Tipe', sortBy: 'type', sortColumn: true },
             { text: 'Event', sortBy: 'event_id', sortColumn: false },
+            { text: 'Tags', sortBy: '', sortColumn: false },
             { text: 'Status', sortBy: 'status', sortColumn: true },
             { text: 'Aksi', sortBy: '', sortColumn: false, class: 'text-center' }
         ],
@@ -39,6 +41,8 @@ export const useContent = defineStore('fchContent', () => {
     function setSortBy(sort: string) { table.sortBy = sort }
     function setTotalData(total: number) { table.totalData = total }
 
+    const eventIdFilter = ref('');
+
     function resetTable() {
         setCurrentPage(1)
         setShowPerPage(10)
@@ -51,12 +55,15 @@ export const useContent = defineStore('fchContent', () => {
     async function getData() {
         setLoading(true)
         try {
-            const params = {
+            const params: Record<string, any> = {
                 page: table.currentPage,
                 limit: table.showPerPage,
                 orderBy: table.order,
                 sortBy: table.sortBy,
                 search: table.search
+            }
+            if (eventIdFilter.value) {
+                params['event_id'] = eventIdFilter.value;
             }
             const res = await api().get(`${prefix}${resource}`, { params })
             setData(res.data.data.data)
@@ -109,7 +116,7 @@ export const useContent = defineStore('fchContent', () => {
     }
 
     return {
-        table,
+        table, eventIdFilter,
         setShowPerPage, setCurrentPage, setLoading, setSearch, setData, setOrder, setSortBy, setTotalData,
         resetTable, getData, create, show, update, destroy
     }

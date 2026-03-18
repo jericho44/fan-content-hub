@@ -17,60 +17,99 @@
                                     </button>
                                 </div>
                                 <div class="card-body pt-5">
-                                    <DataTable :config="contentStore.table" @get-data="contentStore.getData"
-                                        @set-order="(order: string) => contentStore.setOrder(order)"
-                                        @set-page="(page: number) => contentStore.setCurrentPage(page)"
-                                        @set-search="(search: string) => contentStore.setSearch(search)"
-                                        @set-show-per-page="(showPerPage: number) => contentStore.setShowPerPage(showPerPage)"
-                                        @set-sort-by="(sortBy: string) => contentStore.setSortBy(sortBy)"
-                                        :is-from-store="true">
-                                        <template v-slot:header-preview>
-                                            <th class="min-w-80px text-center">Preview</th>
-                                        </template>
-                                        <template v-slot:body>
-                                            <tr v-for="(context, index) in contentStore.table.data" :key="context.id">
-                                                <td class="text-center">
-                                                    {{ index + ((Number(contentStore.table.showPerPage) *
-                                                        (Number(contentStore.table.currentPage) - 1))) + 1 }}
-                                                </td>
-                                                <td class="text-center">
-                                                    <div v-if="context.google_drive_url" class="symbol symbol-50px cursor-pointer" @click="openLink(context.google_drive_url)">
-                                                        <img v-if="context.type === 'image'" :src="context.google_drive_url" class="rounded object-fit-cover" alt="Preview">
-                                                        <div v-else class="symbol-label bg-light-primary text-primary">
-                                                            <i class="fas fa-video fs-2"></i>
-                                                        </div>
+                                    <!-- Toolbar -->
+                                    <div class="d-flex align-items-center flex-wrap gap-3 mb-6">
+                                        <div class="d-flex align-items-center border rounded px-3 py-2 bg-white flex-grow-1" style="max-width:280px;">
+                                            <i class="fas fa-search text-muted me-2 fs-7"></i>
+                                            <input type="text" class="border-0 fs-7 w-100" style="outline:none;"
+                                                placeholder="Cari konten..."
+                                                :value="contentStore.table.search"
+                                                @input="(e: any) => { contentStore.setSearch(e.target.value); contentStore.setCurrentPage(1); contentStore.getData(); }">
+                                        </div>
+                                        <select class="form-select form-select-sm w-auto" v-model="filterEventId" @change="applyFilter">
+                                            <option value="">Semua Event</option>
+                                            <option v-for="evt in eventStore.table.data" :key="evt.id" :value="evt.id">{{ evt.name }}</option>
+                                        </select>
+                                        <button v-if="filterEventId" class="btn btn-sm btn-light-danger" @click="clearFilter">
+                                            <i class="fas fa-times me-1"></i> Reset
+                                        </button>
+                                        <select class="form-select form-select-sm w-auto ms-auto" :value="contentStore.table.showPerPage"
+                                            @change="(e: any) => { contentStore.setShowPerPage(Number(e.target.value)); contentStore.setCurrentPage(1); contentStore.getData(); }">
+                                            <option value="12">12 per halaman</option>
+                                            <option value="24">24 per halaman</option>
+                                            <option value="48">48 per halaman</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Loading -->
+                                    <div v-if="contentStore.table.loading" class="d-flex justify-content-center py-20">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                    </div>
+
+                                    <!-- Empty -->
+                                    <div v-else-if="contentStore.table.data.length === 0" class="text-center py-20 text-muted">
+                                        <i class="fas fa-images fs-1 text-gray-300 d-block mb-3"></i>
+                                        <span class="fs-6">Belum ada konten. Klik <b>Upload Konten</b> untuk menambahkan!</span>
+                                    </div>
+
+                                    <!-- Gallery Grid -->
+                                    <div v-else class="admin-gallery-grid">
+                                        <div v-for="item in contentStore.table.data" :key="item.id" class="admin-gallery-card">
+                                            <div class="admin-gallery-thumb">
+                                                <!-- Image -->
+                                                <img v-if="item.type === 'image' && item.google_drive_url"
+                                                    :src="item.google_drive_url"
+                                                    class="admin-gallery-img"
+                                                    :alt="item.title">
+                                                <!-- Video placeholder -->
+                                                <div v-else class="admin-gallery-video-ph">
+                                                    <i class="fas fa-play-circle"></i>
+                                                </div>
+                                                <!-- Hover Overlay -->
+                                                <div class="admin-gallery-overlay">
+                                                    <div class="d-flex gap-2">
+                                                        <button @click.stop="edit(item.id)" class="btn btn-sm btn-light" title="Edit">
+                                                            <i class="fas fa-edit text-primary"></i>
+                                                        </button>
+                                                        <button @click.stop="destroyData(item.id)" class="btn btn-sm btn-danger" title="Hapus">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
-                                                    <span v-else class="text-muted small">Proses...</span>
-                                                </td>
-                                                <td class="text-left">{{ context.title }}</td>
-                                                <td class="text-left">{{ context.event?.name ?? '-' }}</td>
-                                                <td class="text-center">
-                                                    <span :class="`badge badge-light-${statusColor(context.status)}`">{{ context.status }}</span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button @click="edit(context?.id)" class="btn btn-secondary btn-xs me-2"
-                                                        type="button"
-                                                        style="padding:5px 10px !important;color: #3E97FF;"
-                                                        aria-expanded="false">
-                                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <path
-                                                                d="M11.9607 6.0805L6.38415 11.9762C6.21888 12.1509 5.98897 12.2499 5.74846 12.2499L3.20857 12.2499C2.72532 12.2499 2.33357 11.8582 2.33357 11.3749L2.33357 8.81264C2.33357 8.58536 2.422 8.367 2.58015 8.20378L8.21459 2.38837C8.55085 2.04131 9.1048 2.03255 9.45187 2.36882C9.45518 2.37202 9.45847 2.37526 9.46172 2.37852L11.9437 4.86051C12.2787 5.19552 12.2862 5.73631 11.9607 6.0805Z"
-                                                                fill="currentColor" />
-                                                        </svg>
-                                                        &ensp; Edit
-                                                    </button>
-                                                    
-                                                    <button @click="destroyData(context?.id)" class="btn btn-danger btn-xs"
-                                                        type="button"
-                                                        style="padding:5px 10px !important;"
-                                                        aria-expanded="false">
-                                                        Hapus
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </DataTable>
+                                                </div>
+                                                <!-- Badges -->
+                                                <span class="admin-gallery-type" :class="item.type === 'image' ? 'bg-success' : 'bg-info'">
+                                                    <i :class="item.type === 'image' ? 'fas fa-image' : 'fas fa-video'"></i>
+                                                </span>
+                                                <span class="admin-gallery-status" :class="`badge badge-light-${statusColor(item.status)}`">{{ item.status }}</span>
+                                            </div>
+                                            <div class="admin-gallery-meta">
+                                                <div class="fw-bold fs-7 text-dark text-truncate" :title="item.title">{{ item.title }}</div>
+                                                <div class="text-muted fs-8 text-truncate">{{ item.event?.name ?? '-' }}</div>
+                                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                                    <span v-for="tag in (item.tags || [])" :key="tag.id" class="badge badge-light-primary" style="font-size:10px;">{{ tag.name }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="d-flex justify-content-between align-items-center mt-6 flex-wrap gap-2">
+                                        <span class="text-muted fs-7">
+                                            {{ contentStore.table.totalData }} konten ditemukan
+                                        </span>
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <button class="btn btn-sm btn-light-primary px-3" :disabled="contentStore.table.currentPage <= 1"
+                                                @click="contentStore.setCurrentPage(contentStore.table.currentPage - 1); contentStore.getData()">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <span class="text-muted fs-7 px-2">Halaman {{ contentStore.table.currentPage }}</span>
+                                            <button class="btn btn-sm btn-light-primary px-3"
+                                                :disabled="contentStore.table.currentPage * contentStore.table.showPerPage >= contentStore.table.totalData"
+                                                @click="contentStore.setCurrentPage(contentStore.table.currentPage + 1); contentStore.getData()">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -91,12 +130,12 @@
 
                 <div class="mb-5" v-if="flag === 'insert'">
                     <label class="form-label fw-bolder fs-6" :class="v$.single.type.$error ? 'text-danger' : ''">Tipe</label>
-                    <select class="form-select" v-model="single.type">
-                        <option value="" disabled>Pilih Tipe</option>
+                    <select class="form-select" v-model="single.type" disabled>
+                        <option value="">Akan terdeteksi otomatis dari file</option>
                         <option value="image">Gambar (Foto)</option>
                         <option value="video">Video</option>
                     </select>
-                    <div v-if="v$.single.type.$error" class="text-danger"> Tipe tidak boleh kosong! </div>
+                    <div class="text-muted fs-7 mt-1">Tipe ditentukan otomatis dari ekstensi file yang dipilih.</div>
                 </div>
 
                 <div class="mb-5">
@@ -168,6 +207,11 @@ const modalForm = ref<InstanceType<typeof CustomModal> | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const flag = ref<'insert' | 'edit'>('insert');
 
+const filterEventId = computed({
+    get: () => contentStore.eventIdFilter,
+    set: (val: string) => { contentStore.eventIdFilter = val; }
+});
+
 const single = reactive({
     id: '' as string,
     title: '',
@@ -182,7 +226,7 @@ const rules = computed(() => {
     return {
         single: {
             title: { required },
-            type: flag.value === 'insert' ? { required } : {},
+            type: {},
             event_id: { required },
             files: flag.value === 'insert' ? { required } : {},
             status: flag.value === 'edit' ? { required } : {}
@@ -213,8 +257,14 @@ function handleFileUpload(event: Event) {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
         single.files = Array.from(target.files);
+        // Auto-detect type from the first file's extension
+        const firstFile = single.files[0];
+        const ext = firstFile.name.split('.').pop()?.toLowerCase() ?? '';
+        const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv'];
+        single.type = videoExtensions.includes(ext) ? 'video' : 'image';
     } else {
         single.files = [];
+        single.type = '';
     }
 }
 
@@ -222,6 +272,16 @@ function statusColor(status: string) {
     if (status === 'active') return 'success';
     if (status === 'pending') return 'warning';
     return 'danger';
+}
+
+function applyFilter() {
+    contentStore.setCurrentPage(1);
+    contentStore.getData();
+}
+
+function clearFilter() {
+    filterEventId.value = '';
+    applyFilter();
 }
 
 function showModalAdd() {
@@ -331,3 +391,101 @@ function reset() {
     }
 }
 </script>
+
+<style scoped>
+.admin-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.admin-gallery-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-gallery-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+}
+
+.admin-gallery-thumb {
+    position: relative;
+    width: 100%;
+    padding-top: 75%; /* 4:3 aspect ratio */
+    background: #1a1a2e;
+    overflow: hidden;
+}
+
+.admin-gallery-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.admin-gallery-card:hover .admin-gallery-img {
+    transform: scale(1.05);
+}
+
+.admin-gallery-video-ph {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    font-size: 2.5rem;
+    color: rgba(255,255,255,0.7);
+}
+
+.admin-gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.admin-gallery-card:hover .admin-gallery-overlay {
+    opacity: 1;
+}
+
+.admin-gallery-type {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+}
+
+.admin-gallery-status {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-size: 10px;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.admin-gallery-meta {
+    padding: 10px 12px 12px;
+}
+
+@media (max-width: 576px) {
+    .admin-gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
